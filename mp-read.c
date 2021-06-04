@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
             if (n < 0) {
                 err(1, "read pipe from child fail");
             }
-            printf(" %.3f (%ld)", bytes/1024.0/1024.0/(double)interval_sec, count);
+            printf(" %.3f (%ld)", bytes/1024.0/1024.0/(double)interval_sec, count/interval_sec);
         }
         printf("\n");
     }
