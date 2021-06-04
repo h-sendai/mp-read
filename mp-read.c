@@ -25,7 +25,10 @@ volatile sig_atomic_t has_sigusr1 = 0;
 
 int usage()
 {
-    char msg[] = "Usage: mp-read ip_address:port [ip_address:port ...]";
+    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] ip_address:port [ip_address:port ...]\n"
+                 "-i: interval_sec (default: 1 second)\n"
+                 "-b: bufsize for reading socket (default: 128kB). k for kilo, m for mega\n"
+                 "-d: debug\n";
     fprintf(stderr, "%s\n", msg);
 
     return 0;
@@ -91,7 +94,7 @@ int main(int argc, char *argv[])
     int interval_sec = 1;
     int __attribute__((unused)) total_sec    = 10;
     int c;
-    while ( (c = getopt(argc, argv, "b:di:t:")) != -1) {
+    while ( (c = getopt(argc, argv, "b:dhi:t:")) != -1) {
         switch (c) {
             case 'b':
                 bufsize = get_num(optarg);
@@ -102,6 +105,9 @@ int main(int argc, char *argv[])
             case 'i':
                 interval_sec = strtol(optarg, NULL, 0);
                 break;
+            case 'h':
+                usage();
+                exit(0);
             case 't':
                 total_sec = strtol(optarg, NULL, 0);
                 break;
