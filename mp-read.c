@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
         }
     }
  
-    // parant.  data gatherer
+    // parent.  data gatherer
     set_timer(interval_sec, 0, interval_sec, 0);
     my_signal(SIGALRM, sig_alrm);
 
