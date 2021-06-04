@@ -59,6 +59,7 @@ int child_proc(host_info *p)
     close(pipe_rd_end);
 
     long read_bytes_interval = 0;
+    long read_count_interval = 0;
 
     int sockfd = tcp_socket();
     if (connect_tcp(sockfd, p->ip_address, p->port) < 0) {
@@ -72,11 +73,17 @@ int child_proc(host_info *p)
 
     for ( ; ; ) {
         if (has_sigusr1) {
-            int n = write(pipe_wr_end, &read_bytes_interval, sizeof(read_bytes_interval));
+            int n;
+            n = write(pipe_wr_end, &read_bytes_interval, sizeof(read_bytes_interval));
+            if (n < 0) {
+                err(1, "write pipe error");
+            }
+            n = write(pipe_wr_end, &read_count_interval, sizeof(read_count_interval));
             if (n < 0) {
                 err(1, "write pipe error");
             }
             read_bytes_interval = 0;
+            read_count_interval = 0;
             has_sigusr1         = 0;
         }
         int n = read(sockfd, buf, bufsize);
@@ -84,6 +91,7 @@ int child_proc(host_info *p)
             err(1, "read");
         }
         read_bytes_interval += n;
+        read_count_interval += 1;
     }
 
     exit(0);
@@ -164,11 +172,17 @@ int main(int argc, char *argv[])
         for (host_info *p = host_list; p != NULL; p = p->next) {
             kill(p->pid, SIGUSR1);
             long bytes;
-            int n = read(p->pipe_fd[0], &bytes, sizeof(bytes));
+            long count;
+            int n;
+            n = read(p->pipe_fd[0], &bytes, sizeof(bytes));
             if (n < 0) {
                 err(1, "read pipe from child fail");
             }
-            printf(" %.3f", bytes/1024.0/1024.0/(double)interval_sec);
+            n = read(p->pipe_fd[0], &count, sizeof(count));
+            if (n < 0) {
+                err(1, "read pipe from child fail");
+            }
+            printf(" %.3f (%ld)", bytes/1024.0/1024.0/(double)interval_sec, count);
         }
         printf("\n");
     }
