@@ -172,6 +172,7 @@ int main(int argc, char *argv[])
         for (host_info *p = host_list; p != NULL; p = p->next) {
             kill(p->pid, SIGUSR1);
         }
+        long total_bytes = 0;
         for (host_info *p = host_list; p != NULL; p = p->next) {
             long bytes;
             long count;
@@ -184,9 +185,10 @@ int main(int argc, char *argv[])
             if (n < 0) {
                 err(1, "read pipe from child fail");
             }
-            printf(" %.3f (%ld)", bytes/1024.0/1024.0/(double)interval_sec, count/interval_sec);
+            printf(" %.3f ( %ld )", bytes/1024.0/1024.0/(double)interval_sec, count/interval_sec);
+            total_bytes += bytes;
         }
-        printf("\n");
+        printf(" %.3f\n", total_bytes/1024.0/1024.0);
     }
 
     // SIG_INT will be sent to parent and child processes
