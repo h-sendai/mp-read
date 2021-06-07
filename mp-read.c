@@ -171,6 +171,8 @@ int main(int argc, char *argv[])
         printf("%ld.%06ld", tv_interval.tv_sec, tv_interval.tv_usec);
         for (host_info *p = host_list; p != NULL; p = p->next) {
             kill(p->pid, SIGUSR1);
+        }
+        for (host_info *p = host_list; p != NULL; p = p->next) {
             long bytes;
             long count;
             int n;
