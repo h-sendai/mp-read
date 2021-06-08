@@ -37,6 +37,12 @@ int usage()
 void sig_usr1(int signo)
 {
     has_sigusr1 = 1;
+#if 0
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    pid_t pid = getpid();
+    fprintf(stderr, "%d %ld.%06ld\n", pid, tv.tv_sec, tv.tv_usec);
+#endif
     return;
 }
 
@@ -88,7 +94,12 @@ int child_proc(host_info *p)
         }
         int n = read(sockfd, buf, bufsize);
         if (n < 0) {
-            err(1, "read");
+            if (errno == EINTR) {
+                continue;
+            }
+            else {
+                err(1, "read");
+            }
         }
         read_bytes_interval += n;
         read_count_interval += 1;
