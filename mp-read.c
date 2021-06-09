@@ -58,8 +58,9 @@ int child_proc(host_info *p)
     my_signal(SIGUSR1, sig_usr1);
 
     pid_t pid = getpid();
+    pid_t pgid = getpgid(0);
     if (debug) {
-        fprintf(stderr, "child_proc: %d ip_address: %s\n", pid, p->ip_address);
+        fprintf(stderr, "child_proc: %d %d ip_address: %s\n", pid, pgid, p->ip_address);
     }
 
     int pipe_rd_end = p->pipe_fd[0];
@@ -71,7 +72,8 @@ int child_proc(host_info *p)
 
     int sockfd = tcp_socket();
     if (connect_tcp(sockfd, p->ip_address, p->port) < 0) {
-        errx(1, "connect_tcp fail");
+        warnx("connect_tcp fail: %s", p->ip_address);
+        killpg(0, SIGTERM); /* send SIGTERM to all child and parent using process group id */
     }
 
     if (enable_quickack) {
