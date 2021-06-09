@@ -13,7 +13,7 @@ Sigfunc *my_signal(int signo, Sigfunc *func)
 #endif
     } else {
 #ifdef  SA_RESTART
-        act.sa_flags |= SA_RESTART;     /* SVR4, 44BSD */
+//      act.sa_flags |= SA_RESTART;     /* SVR4, 44BSD */
 #endif
     }
     if (sigaction(signo, &act, &oact) < 0)
