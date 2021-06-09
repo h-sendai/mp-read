@@ -22,6 +22,8 @@ int debug   = 0;
 int bufsize = 128*1024; // default 128kB
 host_info *host_list = NULL;
 volatile sig_atomic_t has_sigusr1 = 0;
+int enable_quickack = 0;
+int disable_quickack = 0;
 
 int usage()
 {
@@ -72,6 +74,15 @@ int child_proc(host_info *p)
         errx(1, "connect_tcp fail");
     }
 
+    if (enable_quickack) {
+        int qack = 1;
+        setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK, &qack, sizeof(qack));
+    }
+    if (disable_quickack) {
+        int qack = 0;
+        setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK, &qack, sizeof(qack));
+    }
+
     char *buf = malloc(bufsize);
     if (buf == NULL) {
         fprintf(stderr, "malloc for socket read buf");
@@ -113,7 +124,7 @@ int main(int argc, char *argv[])
     int interval_sec = 1;
     int __attribute__((unused)) total_sec    = 10;
     int c;
-    while ( (c = getopt(argc, argv, "b:dhi:t:")) != -1) {
+    while ( (c = getopt(argc, argv, "b:dhi:qQt:")) != -1) {
         switch (c) {
             case 'b':
                 bufsize = get_num(optarg);
@@ -127,6 +138,12 @@ int main(int argc, char *argv[])
             case 'h':
                 usage();
                 exit(0);
+            case 'q':
+                enable_quickack = 1;
+                break;
+            case 'Q':
+                disable_quickack = 1;
+                break;
             case 't':
                 total_sec = strtol(optarg, NULL, 0);
                 break;
