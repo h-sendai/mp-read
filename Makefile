@@ -14,6 +14,7 @@ OBJS += my_signal.o
 OBJS += get_num.o
 OBJS += set_timer.o
 OBJS += set_cpu.o
+OBJS += print_command_line.o
 $(PROG): $(OBJS)
 
 clean:

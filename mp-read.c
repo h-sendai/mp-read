@@ -17,6 +17,7 @@
 #include "my_socket.h"
 #include "set_timer.h"
 #include "set_cpu.h"  // not used.  may be used in reading 10GbE x 4 experiment (?)
+#include "print_command_line.h"
 
 int debug   = 0;
 int bufsize = 128*1024; // default 128kB
@@ -126,6 +127,9 @@ int main(int argc, char *argv[])
     int interval_sec = 1;
     int __attribute__((unused)) total_sec    = 10;
     int c;
+
+    print_command_line(stdout, argc, argv);
+
     while ( (c = getopt(argc, argv, "b:dhi:qQt:")) != -1) {
         switch (c) {
             case 'b':
@@ -219,6 +223,7 @@ int main(int argc, char *argv[])
             total_bytes += bytes;
         }
         printf(" %.3f\n", total_bytes/1024.0/1024.0);
+        fflush(stdout);
     }
 
     // SIG_INT will be sent to parent and child processes
