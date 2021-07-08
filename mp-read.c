@@ -28,9 +28,11 @@ int disable_quickack = 0;
 
 int usage()
 {
-    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] ip_address:port [ip_address:port ...]\n"
+    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] ip_address:port [ip_address:port ...]\n"
                  "-i: interval_sec (default: 1 second)\n"
                  "-b: bufsize for reading socket (default: 128kB). k for kilo, m for mega\n"
+                 "-q: enable quickack once\n"
+                 "-qq: enable quickack before every read()\n"
                  "-d: debug\n";
     fprintf(stderr, "%s\n", msg);
 
@@ -78,8 +80,9 @@ int child_proc(host_info *p)
     }
 
     if (enable_quickack) {
-        int qack = 1;
-        setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK, &qack, sizeof(qack));
+        if (set_so_quickack(sockfd) < 0) {
+            errx(1, "set_so_quickack");
+        }
     }
     if (disable_quickack) {
         int qack = 0;
@@ -105,6 +108,12 @@ int child_proc(host_info *p)
             read_bytes_interval = 0;
             read_count_interval = 0;
             has_sigusr1         = 0;
+        }
+
+        if (enable_quickack > 1) {
+            if (set_so_quickack(sockfd) < 0) {
+                errx(1, "set_so_quickack");
+            }
         }
         int n = read(sockfd, buf, bufsize);
         if (n < 0) {
@@ -145,7 +154,7 @@ int main(int argc, char *argv[])
                 usage();
                 exit(0);
             case 'q':
-                enable_quickack = 1;
+                enable_quickack += 1;
                 break;
             case 'Q':
                 disable_quickack = 1;
@@ -165,6 +174,7 @@ int main(int argc, char *argv[])
     }
     if (debug) {
         fprintf(stderr, "bufsize: %d bytes\n", bufsize);
+        fprintf(stderr, "enable_quickack: %d\n", enable_quickack);
     }
 
     for (int i = 0; i < argc; ++i) {
