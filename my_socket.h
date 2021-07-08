@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/uio.h>     /* for iovec{} and readv/writev */
+#include <sys/ioctl.h>
 
 #include <arpa/inet.h>   /* inet(3) functions */
 #include <netinet/in.h>  /* sockaddr_in{} and other Internet defns */
@@ -33,7 +34,9 @@ extern int get_so_rcvbuf(int sockfd);
 extern int set_so_rcvbuf(int sockfd, int so_rcvbuf);
 extern int get_so_sndbuf(int sockfd);
 extern int set_so_sndbuf(int sockfd, int so_sndbuf);
+extern int get_bytes_in_rcvbuf(int sockfd);
 extern int set_so_nodelay(int sockfd);
+extern int set_so_quickack(int sockfd);
 extern int get_so_rcvlowat(int sockfd);
 extern int set_so_rcvlowat(int sockfd, int lowat);
 

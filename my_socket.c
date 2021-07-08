@@ -2,21 +2,21 @@
 
 int tcp_socket(void)
 {
-	return socket(AF_INET, SOCK_STREAM, 0);
+    return socket(AF_INET, SOCK_STREAM, 0);
 }
 
 int udp_socket(void)
 {
-	return socket(AF_INET, SOCK_DGRAM, 0);
+    return socket(AF_INET, SOCK_DGRAM, 0);
 }
 
 int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
 {
-	struct sockaddr_in servaddr;
-	struct sockaddr_in *resaddr;
-	struct addrinfo    hints;
-	struct addrinfo    *res;
-	int err;
+    struct sockaddr_in servaddr;
+    struct sockaddr_in *resaddr;
+    struct addrinfo    hints;
+    struct addrinfo    *res;
+    int err;
     struct timeval tm_out, orig_tm_out;
     socklen_t len;
 
@@ -26,21 +26,21 @@ int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
         return -1;
     }
 
-	res = 0;
-	memset((char *)&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
-		return -1;
-	}
+    res = 0;
+    memset((char *)&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+    if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
+        return -1;
+    }
 
-	resaddr = (struct sockaddr_in *)res->ai_addr;
-	memset((char *)&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port   = htons(port);
-	servaddr.sin_addr   = resaddr->sin_addr;
-	freeaddrinfo(res);
+    resaddr = (struct sockaddr_in *)res->ai_addr;
+    memset((char *)&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port   = htons(port);
+    servaddr.sin_addr   = resaddr->sin_addr;
+    freeaddrinfo(res);
 
     tm_out.tv_sec  = timeout_sec;
     tm_out.tv_usec = 0;
@@ -64,72 +64,72 @@ int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
         return -1;
     }
 
-	return 0;
+    return 0;
 }
 
 /* from kolc */
 int connect_tcp(int sockfd, char *host, int port)
 {
-	struct sockaddr_in servaddr;
-	struct sockaddr_in *resaddr;
-	struct addrinfo    hints;
-	struct addrinfo    *res;
-	int err;
+    struct sockaddr_in servaddr;
+    struct sockaddr_in *resaddr;
+    struct addrinfo    hints;
+    struct addrinfo    *res;
+    int err;
 
-	res = 0;
-	memset((char *)&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
-		return -1;
-	}
+    res = 0;
+    memset((char *)&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+    if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
+        return -1;
+    }
 
-	resaddr = (struct sockaddr_in *)res->ai_addr;
-	memset((char *)&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port   = htons(port);
-	servaddr.sin_addr   = resaddr->sin_addr;
-	freeaddrinfo(res);
+    resaddr = (struct sockaddr_in *)res->ai_addr;
+    memset((char *)&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port   = htons(port);
+    servaddr.sin_addr   = resaddr->sin_addr;
+    freeaddrinfo(res);
 
-	if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-		perror("connect");
-		return -1;
-	}
-	//return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-	return 0;
+    if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("connect");
+        return -1;
+    }
+    //return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    return 0;
 }
 
 int connect_udp(int sockfd, char *host, int port)
 {
-	struct sockaddr_in servaddr;
-	struct sockaddr_in *resaddr;
-	struct addrinfo    hints;
-	struct addrinfo    *res;
-	int err;
+    struct sockaddr_in servaddr;
+    struct sockaddr_in *resaddr;
+    struct addrinfo    hints;
+    struct addrinfo    *res;
+    int err;
 
-	res = 0;
-	memset((char *)&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_protocol = 0;
-	if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
-		return -1;
-	}
+    res = 0;
+    memset((char *)&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = 0;
+    if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
+        return -1;
+    }
 
-	resaddr = (struct sockaddr_in *)res->ai_addr;
-	memset((char *)&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port   = htons(port);
-	servaddr.sin_addr   = resaddr->sin_addr;
-	freeaddrinfo(res);
+    resaddr = (struct sockaddr_in *)res->ai_addr;
+    memset((char *)&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port   = htons(port);
+    servaddr.sin_addr   = resaddr->sin_addr;
+    freeaddrinfo(res);
 
-	if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-		perror("connect");
-		return -1;
-	}
-	//return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-	return 0;
+    if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("connect");
+        return -1;
+    }
+    //return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    return 0;
 }
 
 int my_bind(int sockfd, char *host, int port)
@@ -229,11 +229,32 @@ int set_so_sndbuf(int sockfd, int so_sndbuf)
     return ret_so_sndbuf;
 }
 
+int get_bytes_in_rcvbuf(int sockfd)
+{
+    int nbytes;
+    if (ioctl(sockfd, FIONREAD, &nbytes) < 0) {
+        warn("ioctl(sockfd, FIONREAD, &nbytes)");
+    }
+
+    return nbytes;
+}
+
 int set_so_nodelay(int sockfd)
 {
     int on = 1;
     if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY , &on, sizeof(on)) < 0) {
         warn("setsockopt nodelay");
+        return -1;
+    }
+
+    return 0;
+}
+
+int set_so_quickack(int sockfd)
+{
+    int on = 1;
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK , &on, sizeof(on)) < 0) {
+        warn("setsockopt quickack");
         return -1;
     }
 
