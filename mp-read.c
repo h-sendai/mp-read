@@ -29,7 +29,7 @@ int disable_quickack = 0;
 int usage()
 {
     char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] ip_address:port [ip_address:port ...]\n"
-                 "-i: interval_sec (default: 1 second)\n"
+                 "-i: interval_sec (default: 1 second.  decimal value allowed)\n"
                  "-b: bufsize for reading socket (default: 128kB). k for kilo, m for mega\n"
                  "-q: enable quickack once\n"
                  "-qq: enable quickack before every read()\n"
@@ -133,8 +133,8 @@ int child_proc(host_info *p)
 
 int main(int argc, char *argv[])
 {
-    int interval_sec = 1;
-    int __attribute__((unused)) total_sec    = 10;
+    char *interval_sec_str = "1.0";
+    int __attribute__((unused)) total_sec = 10;
     int c;
 
     print_command_line(stdout, argc, argv);
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
                 debug = 1;
                 break;
             case 'i':
-                interval_sec = strtol(optarg, NULL, 0);
+                interval_sec_str = optarg;
                 break;
             case 'h':
                 usage();
@@ -201,7 +201,9 @@ int main(int argc, char *argv[])
     }
  
     // parent.  data gatherer
-    set_timer(interval_sec, 0, interval_sec, 0);
+    struct timeval interval;
+    conv_str2timeval(interval_sec_str, &interval);
+    set_timer(interval.tv_sec, interval.tv_usec, interval.tv_sec, interval.tv_usec);
     my_signal(SIGALRM, sig_alrm);
 
     struct timeval tv_start, elapsed, tv_prev, tv_interval, now;
@@ -212,7 +214,8 @@ int main(int argc, char *argv[])
         gettimeofday(&now, NULL);
         timersub(&now, &tv_start, &elapsed);
         timersub(&now, &tv_prev,  &tv_interval);
-        printf("%ld.%06ld", tv_interval.tv_sec, tv_interval.tv_usec);
+        double interval_sec = tv_interval.tv_sec + 0.000001*tv_interval.tv_usec;
+        printf("%ld.%06ld", elapsed.tv_sec, elapsed.tv_usec);
         for (host_info *p = host_list; p != NULL; p = p->next) {
             kill(p->pid, SIGUSR1);
         }
@@ -229,11 +232,12 @@ int main(int argc, char *argv[])
             if (n < 0) {
                 err(1, "read pipe from child fail");
             }
-            printf(" %.3f ( %ld )", bytes/1024.0/1024.0/(double)interval_sec, count/interval_sec);
+            printf(" %.3f ( %ld )", bytes/1024.0/1024.0/(double)interval_sec, count);
             total_bytes += bytes;
         }
         printf(" %.3f\n", total_bytes/1024.0/1024.0);
         fflush(stdout);
+        tv_prev = now;
     }
 
     // SIG_INT will be sent to parent and child processes

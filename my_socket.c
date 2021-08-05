@@ -188,6 +188,7 @@ int set_so_rcvbuf(int sockfd, int so_rcvbuf)
     if (ret_so_rcvbuf != so_rcvbuf) {
 #endif
         warnx("cannot set to %d bytes, but set %d bytes", so_rcvbuf, ret_so_rcvbuf);
+        return -1;
     }
 
     return ret_so_rcvbuf;
