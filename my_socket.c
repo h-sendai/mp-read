@@ -349,3 +349,8 @@ int get_port_num(int sockfd)
 
     return ntohs(myaddr.sin_port);
 }
+
+double MiB2Gb(double x)
+{
+    return x*1024.0*1024.0*8/1000000000.0;
+}
