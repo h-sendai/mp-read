@@ -232,10 +232,15 @@ int main(int argc, char *argv[])
             if (n < 0) {
                 err(1, "read pipe from child fail");
             }
-            printf(" %.3f ( %ld )", bytes/1024.0/1024.0/(double)interval_sec, count);
+            double transfer_rate_MB_s = bytes / 1024.0 / 1024.0 / interval_sec;
+            double transfer_rate_Gbps = MiB2Gb(transfer_rate_MB_s);
+            printf(" %.3f MB/s %.3f Gbps %ld", transfer_rate_MB_s, transfer_rate_Gbps, count);
             total_bytes += bytes;
         }
-        printf(" %.3f\n", total_bytes/1024.0/1024.0);
+        double total_transfer_rate_MB_s = total_bytes / 1024.0 / 1024.0 / interval_sec;
+        double total_transfer_rate_Gbps = MiB2Gb(total_transfer_rate_MB_s);
+        //printf(" %.3f MB/s %.3f Gbps\n", total_bytes/1024.0/1024.0);
+        printf(" %.3f MB/s %.3f Gbps\n", total_transfer_rate_MB_s, total_transfer_rate_Gbps);
         fflush(stdout);
         tv_prev = now;
     }
