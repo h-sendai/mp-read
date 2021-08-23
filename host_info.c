@@ -86,7 +86,7 @@ int dump_host_info(host_info *host_list)
 {
     host_info *p;
     for (p = host_list; p != NULL; p = p->next) {
-        printf("ip_address: %s port: %d\n", p->ip_address, p->port);
+        printf("ip_address: %s port: %d cpu_affinity: %d\n", p->ip_address, p->port, p->cpu_affinity);
     }
 
     return 0;

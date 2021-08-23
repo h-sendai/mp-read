@@ -17,6 +17,7 @@ struct host_info_tag {
 	int   read_count;
     int   pipe_fd[2];
     pid_t pid;
+    int   cpu_affinity;
 	struct host_info_tag *next;
 };
 typedef struct host_info_tag host_info;

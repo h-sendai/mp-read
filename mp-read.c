@@ -28,11 +28,12 @@ int disable_quickack = 0;
 
 int usage()
 {
-    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] ip_address:port [ip_address:port ...]\n"
+    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] [-c cpu_num -c cpu_num ...] ip_address:port [ip_address:port ...]\n"
                  "-i: interval_sec (default: 1 second.  decimal value allowed)\n"
                  "-b: bufsize for reading socket (default: 128kB). k for kilo, m for mega\n"
                  "-q: enable quickack once\n"
                  "-qq: enable quickack before every read()\n"
+                 "-c: cpu_num.  may specify multiple times\n"
                  "-d: debug\n";
     fprintf(stderr, "%s\n", msg);
 
@@ -64,6 +65,14 @@ int child_proc(host_info *p)
     pid_t pgid = getpgid(0);
     if (debug) {
         fprintf(stderr, "child_proc: %d %d ip_address: %s\n", pid, pgid, p->ip_address);
+        fprintf(stderr, "cpu_affinity: %d\n", p->cpu_affinity);
+    }
+
+    if (p->cpu_affinity != -1) {
+        if (set_cpu(p->cpu_affinity) < 0) {
+            fprintf(stderr, "pid: %d set_cpu() failed", pid);
+            exit(1);
+        }
     }
 
     int pipe_rd_end = p->pipe_fd[0];
@@ -139,10 +148,21 @@ int main(int argc, char *argv[])
 
     print_command_line(stdout, argc, argv);
 
-    while ( (c = getopt(argc, argv, "b:dhi:qQt:")) != -1) {
+    int max_n_cpu = 1024;
+    int cpu_affinity[max_n_cpu];
+    for (int i = 0; i < max_n_cpu; ++i) {
+        cpu_affinity[i] = -1;
+    }
+    int cpu_affinity_index = 0;
+
+    while ( (c = getopt(argc, argv, "b:c:dhi:qQt:")) != -1) {
         switch (c) {
             case 'b':
                 bufsize = get_num(optarg);
+                break;
+            case 'c':
+                cpu_affinity[cpu_affinity_index] = strtol(optarg, NULL, 0);
+                cpu_affinity_index ++;
                 break;
             case 'd':
                 debug = 1;
@@ -180,6 +200,16 @@ int main(int argc, char *argv[])
     for (int i = 0; i < argc; ++i) {
         host_list = addend(host_list, new_host(argv[i]));
     }
+
+    {
+        // assign cpu affinity in host_info structure
+        int i;
+        host_info *p;
+        for (p = host_list, i = 0; p != NULL; p = p->next, ++i) {
+            p->cpu_affinity = cpu_affinity[i];
+        }
+    }
+
     if (debug) {
         dump_host_info(host_list);
     }
