@@ -26,7 +26,8 @@ struct host_info_tag {
 typedef struct host_info_tag host_info;
 typedef struct sockaddr SA;
 
-#define DEFAULT_PORT    1234
+/* SiTCP port */
+#define DEFAULT_PORT    24
 #define DEFAULT_BUFSIZE 1024
 
 /* Taken from "The Practice of Programming, Kernighan and Pike" */
