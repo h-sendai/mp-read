@@ -92,9 +92,15 @@ int connect_tcp(int sockfd, char *host, int port)
     servaddr.sin_addr   = resaddr->sin_addr;
     freeaddrinfo(res);
 
+AGAIN:
     if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-        perror("connect");
-        return -1;
+        if (errno == EINTR) {
+            goto AGAIN;
+        }
+        else {
+            perror("connect");
+            return -1;
+        }
     }
     //return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     return 0;
