@@ -20,7 +20,7 @@
 #include "print_command_line.h"
 
 int debug   = 0;
-int bufsize = 128*1024; // default 128kB
+int bufsize = 2*1024*1024; // default 2 MB
 host_info *host_list = NULL;
 volatile sig_atomic_t has_sigusr1 = 0;
 int enable_quickack = 0;
@@ -30,7 +30,7 @@ int usage()
 {
     char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] [-c cpu_num -c cpu_num ...] ip_address:port [ip_address:port ...]\n"
                  "-i: interval_sec (default: 1 second.  decimal value allowed)\n"
-                 "-b: bufsize for reading socket (default: 128kB). k for kilo, m for mega\n"
+                 "-b: bufsize for reading socket (default: 2 MB). k for kilo, m for mega\n"
                  "-q: enable quickack once\n"
                  "-qq: enable quickack before every read()\n"
                  "-c: cpu_num.  may specify multiple times\n"
