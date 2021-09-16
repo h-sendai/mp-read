@@ -28,11 +28,12 @@ int disable_quickack = 0;
 
 int usage()
 {
-    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] [-c cpu_num -c cpu_num ...] ip_address:port [ip_address:port ...]\n"
+    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] [-S so_rcvbuf] [-c cpu_num -c cpu_num ...] ip_address:port [ip_address:port ...]\n"
                  "-i: interval_sec (default: 1 second.  decimal value allowed)\n"
                  "-b: bufsize for reading socket (default: 2 MB). k for kilo, m for mega\n"
                  "-q: enable quickack once\n"
                  "-qq: enable quickack before every read()\n"
+                 "-S: so_rcvbuf\n"
                  "-c: cpu_num.  may specify multiple times\n"
                  "-d: debug\n";
     fprintf(stderr, "%s\n", msg);
@@ -83,6 +84,14 @@ int child_proc(host_info *p)
     long read_count_interval = 0;
 
     int sockfd = tcp_socket();
+
+    if (p->so_rcvbuf != 0) {
+        if (set_so_rcvbuf(sockfd, p->so_rcvbuf) < 0) {
+            warnx("set_so_rcvbuf: %s\n", p->ip_address);
+            exit(1);
+        }
+    }
+
     if (connect_tcp(sockfd, p->ip_address, p->port) < 0) {
         warnx("connect_tcp fail: %s", p->ip_address);
         killpg(0, SIGTERM); /* send SIGTERM to all child and parent using process group id */
@@ -154,8 +163,9 @@ int main(int argc, char *argv[])
         cpu_affinity[i] = -1;
     }
     int cpu_affinity_index = 0;
+    int so_rcvbuf          = 0;
 
-    while ( (c = getopt(argc, argv, "b:c:dhi:qQt:")) != -1) {
+    while ( (c = getopt(argc, argv, "b:c:dhi:qQS:t:")) != -1) {
         switch (c) {
             case 'b':
                 bufsize = get_num(optarg);
@@ -178,6 +188,9 @@ int main(int argc, char *argv[])
                 break;
             case 'Q':
                 disable_quickack = 1;
+                break;
+            case 'S':
+                so_rcvbuf = get_num(optarg);
                 break;
             case 't':
                 total_sec = strtol(optarg, NULL, 0);
@@ -202,11 +215,12 @@ int main(int argc, char *argv[])
     }
 
     {
-        // assign cpu affinity in host_info structure
+        // assign so_rcvbuf and cpu affinity in host_info structure
         int i;
         host_info *p;
         for (p = host_list, i = 0; p != NULL; p = p->next, ++i) {
             p->cpu_affinity = cpu_affinity[i];
+            p->so_rcvbuf    = so_rcvbuf;
         }
     }
 
