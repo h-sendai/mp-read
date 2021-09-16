@@ -251,26 +251,39 @@ int main(int argc, char *argv[])
         }
         long total_bytes = 0;
         for (host_info *p = host_list; p != NULL; p = p->next) {
-            long bytes;
-            long count;
+            //long bytes;
+            //long count;
             int n;
-            n = read(p->pipe_fd[0], &bytes, sizeof(bytes));
+            n = read(p->pipe_fd[0], &p->read_bytes_interval, sizeof(p->read_bytes_interval));
             if (n < 0) {
                 err(1, "read pipe from child fail");
             }
-            n = read(p->pipe_fd[0], &count, sizeof(count));
+            n = read(p->pipe_fd[0], &p->read_count_interval, sizeof(p->read_count_interval));
             if (n < 0) {
                 err(1, "read pipe from child fail");
             }
-            double transfer_rate_MB_s = bytes / 1024.0 / 1024.0 / interval_sec;
+            total_bytes += p->read_bytes_interval;
+        }
+        printf(" Gbps:");
+        for (host_info *p = host_list; p != NULL; p = p->next) {
+            double transfer_rate_MB_s = p->read_bytes_interval / 1024.0 / 1024.0 / interval_sec;
             double transfer_rate_Gbps = MiB2Gb(transfer_rate_MB_s);
-            printf(" %.3f MB/s %.3f Gbps %ld", transfer_rate_MB_s, transfer_rate_Gbps, count);
-            total_bytes += bytes;
+            //printf(" %.3f Gbps", transfer_rate_Gbps);
+            printf(" %.3f", transfer_rate_Gbps);
+        }
+        printf(" MB/s:");
+        for (host_info *p = host_list; p != NULL; p = p->next) {
+            double transfer_rate_MB_s = p->read_bytes_interval / 1024.0 / 1024.0 / interval_sec;
+            printf(" %.3f", transfer_rate_MB_s);
+        }
+        printf(" read_count:");
+        for (host_info *p = host_list; p != NULL; p = p->next) {
+            printf(" %5ld", p->read_count_interval);
         }
         double total_transfer_rate_MB_s = total_bytes / 1024.0 / 1024.0 / interval_sec;
         double total_transfer_rate_Gbps = MiB2Gb(total_transfer_rate_MB_s);
         //printf(" %.3f MB/s %.3f Gbps\n", total_bytes/1024.0/1024.0);
-        printf(" %.3f MB/s %.3f Gbps\n", total_transfer_rate_MB_s, total_transfer_rate_Gbps);
+        printf(" total: %.3f Gbps %.3f MB/s\n", total_transfer_rate_Gbps, total_transfer_rate_MB_s);
         fflush(stdout);
         tv_prev = now;
     }
