@@ -28,12 +28,12 @@ int disable_quickack = 0;
 
 int usage()
 {
-    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] [-S so_rcvbuf] [-c cpu_num -c cpu_num ...] [-T] ip_address:port [ip_address:port ...]\n"
+    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] [-r so_rcvbuf] [-c cpu_num -c cpu_num ...] [-T] ip_address:port [ip_address:port ...]\n"
                  "-i: interval_sec (default: 1 second.  decimal value allowed)\n"
                  "-b: bufsize for reading socket (default: 2 MB). k for kilo, m for mega\n"
                  "-q: enable quickack once\n"
                  "-qq: enable quickack before every read()\n"
-                 "-S: so_rcvbuf\n"
+                 "-r: so_rcvbuf\n"
                  "-c: cpu_num.  may specify multiple times\n"
                  "-T: print tersr result (only Gbps value)\n"
                  "-d: debug\n";
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
     int so_rcvbuf          = 0;
     int print_terse        = 0;
 
-    while ( (c = getopt(argc, argv, "b:c:dhi:qQS:t:T")) != -1) {
+    while ( (c = getopt(argc, argv, "b:c:dhi:qQr:t:T")) != -1) {
         switch (c) {
             case 'b':
                 bufsize = get_num(optarg);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
             case 'Q':
                 disable_quickack = 1;
                 break;
-            case 'S':
+            case 'r':
                 so_rcvbuf = get_num(optarg);
                 break;
             case 't':
