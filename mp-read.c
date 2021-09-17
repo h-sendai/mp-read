@@ -28,13 +28,14 @@ int disable_quickack = 0;
 
 int usage()
 {
-    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] [-S so_rcvbuf] [-c cpu_num -c cpu_num ...] ip_address:port [ip_address:port ...]\n"
+    char msg[] = "Usage: mp-read [-i interval_sec] [-b bufsize] [-d] [-q] [-S so_rcvbuf] [-c cpu_num -c cpu_num ...] [-T] ip_address:port [ip_address:port ...]\n"
                  "-i: interval_sec (default: 1 second.  decimal value allowed)\n"
                  "-b: bufsize for reading socket (default: 2 MB). k for kilo, m for mega\n"
                  "-q: enable quickack once\n"
                  "-qq: enable quickack before every read()\n"
                  "-S: so_rcvbuf\n"
                  "-c: cpu_num.  may specify multiple times\n"
+                 "-T: print tersr result (only Gbps value)\n"
                  "-d: debug\n";
     fprintf(stderr, "%s\n", msg);
 
@@ -164,8 +165,9 @@ int main(int argc, char *argv[])
     }
     int cpu_affinity_index = 0;
     int so_rcvbuf          = 0;
+    int print_terse        = 0;
 
-    while ( (c = getopt(argc, argv, "b:c:dhi:qQS:t:")) != -1) {
+    while ( (c = getopt(argc, argv, "b:c:dhi:qQS:t:T")) != -1) {
         switch (c) {
             case 'b':
                 bufsize = get_num(optarg);
@@ -194,6 +196,9 @@ int main(int argc, char *argv[])
                 break;
             case 't':
                 total_sec = strtol(optarg, NULL, 0);
+                break;
+            case 'T':
+                print_terse = 1;
                 break;
             default:
                 break;
@@ -285,19 +290,23 @@ int main(int argc, char *argv[])
             //printf(" %.3f Gbps", transfer_rate_Gbps);
             printf(" %.3f", transfer_rate_Gbps);
         }
-        printf(" MB/s:");
-        for (host_info *p = host_list; p != NULL; p = p->next) {
-            double transfer_rate_MB_s = p->read_bytes_interval / 1024.0 / 1024.0 / interval_sec;
-            printf(" %.3f", transfer_rate_MB_s);
+        
+        if (!print_terse) {
+            printf(" MB/s:");
+            for (host_info *p = host_list; p != NULL; p = p->next) {
+                double transfer_rate_MB_s = p->read_bytes_interval / 1024.0 / 1024.0 / interval_sec;
+                printf(" %.3f", transfer_rate_MB_s);
+            }
+            printf(" read_count:");
+            for (host_info *p = host_list; p != NULL; p = p->next) {
+                printf(" %5ld", p->read_count_interval);
+            }
+            double total_transfer_rate_MB_s = total_bytes / 1024.0 / 1024.0 / interval_sec;
+            double total_transfer_rate_Gbps = MiB2Gb(total_transfer_rate_MB_s);
+            //printf(" %.3f MB/s %.3f Gbps\n", total_bytes/1024.0/1024.0);
+            printf(" total: %.3f Gbps %.3f MB/s", total_transfer_rate_Gbps, total_transfer_rate_MB_s);
         }
-        printf(" read_count:");
-        for (host_info *p = host_list; p != NULL; p = p->next) {
-            printf(" %5ld", p->read_count_interval);
-        }
-        double total_transfer_rate_MB_s = total_bytes / 1024.0 / 1024.0 / interval_sec;
-        double total_transfer_rate_Gbps = MiB2Gb(total_transfer_rate_MB_s);
-        //printf(" %.3f MB/s %.3f Gbps\n", total_bytes/1024.0/1024.0);
-        printf(" total: %.3f Gbps %.3f MB/s\n", total_transfer_rate_Gbps, total_transfer_rate_MB_s);
+        printf("\n");
         fflush(stdout);
         tv_prev = now;
     }
