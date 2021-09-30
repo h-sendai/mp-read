@@ -97,6 +97,11 @@ int child_proc(host_info *p)
         warnx("connect_tcp fail: %s", p->ip_address);
         killpg(0, SIGTERM); /* send SIGTERM to all child and parent using process group id */
     }
+    int n = write(pipe_wr_end, "ok", sizeof("ok"));
+    if (n < 0) {
+        warnx("cannot write ok to pipe: %s", p->ip_address);
+        killpg(0, SIGTERM); /* send SIGTERM to all child and parent using process group id */
+    }
 
     if (enable_quickack) {
         if (set_so_quickack(sockfd) < 0) {
@@ -250,6 +255,17 @@ int main(int argc, char *argv[])
     }
  
     // parent.  data gatherer
+    // read ok from all child process
+    for (host_info *p = host_list; p != NULL; p = p->next) {
+        char buf[16];
+        int n = read(p->pipe_fd[0], buf, sizeof(buf));
+        if (n < 0) {
+            fprintf(stderr, "child connect not ok: %s", p->ip_address);
+            killpg(0, SIGTERM); /* send SIGTERM to all child and parent using process group id */
+            exit(0);
+        }
+    }
+
     struct timeval interval;
     conv_str2timeval(interval_sec_str, &interval);
     set_timer(interval.tv_sec, interval.tv_usec, interval.tv_sec, interval.tv_usec);
