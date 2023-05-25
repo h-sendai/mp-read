@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -5,6 +6,7 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sched.h> /* for sched_getcpu() */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,6 +85,7 @@ int child_proc(host_info *p)
 
     long read_bytes_interval = 0;
     long read_count_interval = 0;
+    int  cpu_on              = -1;
 
     int sockfd = tcp_socket();
 
@@ -126,6 +129,11 @@ int child_proc(host_info *p)
                 err(1, "write pipe error");
             }
             n = write(pipe_wr_end, &read_count_interval, sizeof(read_count_interval));
+            if (n < 0) {
+                err(1, "write pipe error");
+            }
+            cpu_on = sched_getcpu();
+            n = write(pipe_wr_end, &cpu_on, sizeof(cpu_on));
             if (n < 0) {
                 err(1, "write pipe error");
             }
@@ -298,6 +306,10 @@ int main(int argc, char *argv[])
                 err(1, "read pipe from child fail");
             }
             total_bytes += p->read_bytes_interval;
+            n = read(p->pipe_fd[0], &p->cpu_on, sizeof(p->cpu_on));
+            if (n < 0) {
+                err(1, "read pipe from child fail");
+            }
         }
         printf(" Gbps:");
         for (host_info *p = host_list; p != NULL; p = p->next) {
@@ -307,6 +319,11 @@ int main(int argc, char *argv[])
             printf(" %.3f", transfer_rate_Gbps);
         }
         
+        printf(" CPU:");
+        for (host_info *p = host_list; p != NULL; p = p->next) {
+            printf(" %d", p->cpu_on);
+        }
+
         if (!print_terse) {
             printf(" MB/s:");
             for (host_info *p = host_list; p != NULL; p = p->next) {

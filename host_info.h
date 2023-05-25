@@ -22,6 +22,7 @@ struct host_info_tag {
     long   read_bytes_interval;
     long   read_count_interval;
     int    so_rcvbuf;
+    int    cpu_on;
 };
 typedef struct host_info_tag host_info;
 typedef struct sockaddr SA;
