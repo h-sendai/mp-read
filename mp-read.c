@@ -86,6 +86,7 @@ int child_proc(host_info *p)
     long read_bytes_interval = 0;
     long read_count_interval = 0;
     int  cpu_on              = -1;
+    int  so_rcvbuf           = 0;
 
     int sockfd = tcp_socket();
 
@@ -137,6 +138,12 @@ int child_proc(host_info *p)
             if (n < 0) {
                 err(1, "write pipe error");
             }
+            so_rcvbuf = get_so_rcvbuf(sockfd);
+            n = write(pipe_wr_end, &so_rcvbuf, sizeof(so_rcvbuf));
+            if (n < 0) {
+                err(1, "write pipe error");
+            }
+
             read_bytes_interval = 0;
             read_count_interval = 0;
             has_sigusr1         = 0;
@@ -310,6 +317,10 @@ int main(int argc, char *argv[])
             if (n < 0) {
                 err(1, "read pipe from child fail");
             }
+            n = read(p->pipe_fd[0], &p->so_rcvbuf, sizeof(p->so_rcvbuf));
+            if (n < 0) {
+                err(1, "read pipe from child fail");
+            }
         }
         printf(" Gbps:");
         for (host_info *p = host_list; p != NULL; p = p->next) {
@@ -330,14 +341,21 @@ int main(int argc, char *argv[])
                 double transfer_rate_MB_s = p->read_bytes_interval / 1024.0 / 1024.0 / interval_sec;
                 printf(" %.3f", transfer_rate_MB_s);
             }
+
             printf(" read_count:");
             for (host_info *p = host_list; p != NULL; p = p->next) {
                 printf(" %5ld", p->read_count_interval);
             }
+
             double total_transfer_rate_MB_s = total_bytes / 1024.0 / 1024.0 / interval_sec;
             double total_transfer_rate_Gbps = MiB2Gb(total_transfer_rate_MB_s);
             //printf(" %.3f MB/s %.3f Gbps\n", total_bytes/1024.0/1024.0);
             printf(" total: %.3f Gbps %.3f MB/s", total_transfer_rate_Gbps, total_transfer_rate_MB_s);
+            
+            printf(" SO_RCVBUF:");
+            for (host_info *p = host_list; p != NULL; p = p->next) {
+                printf(" %d", p->so_rcvbuf);
+            }
         }
         printf("\n");
         fflush(stdout);
