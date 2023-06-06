@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
         
         printf(" CPU:");
         for (host_info *p = host_list; p != NULL; p = p->next) {
-            printf(" %d", p->cpu_on);
+            printf(" %2d", p->cpu_on);
         }
 
         if (!print_terse) {
